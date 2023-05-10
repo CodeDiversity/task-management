@@ -9,16 +9,16 @@ import { CreateTaskDTO } from './dto/create-task.dto';
 export class TasksService {
   constructor(
     @InjectRepository(Task)
-    private taskRepository: Repository<Task>,
+    private tasksRepository: Repository<Task>,
   ) {}
 
-  // async getTasksById(id: number): Promise<Task> {
-  //   const found = await this.taskRepository.findOne({ where: { id: id } });
-  //   if (!found) {
-  //     throw new NotFoundException(`Task with ID "${id}" not found`);
-  //   }
-  //   return found;
-  // }
+  async getTasksById(id: string): Promise<Task> {
+    const found = await this.tasksRepository.findOne({ where: { id: id } });
+    if (!found) {
+      throw new NotFoundException(`Task with ID "${id}" not found`);
+    }
+    return found;
+  }
 
   // async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
   //   const task = this.taskRepository.create({
