@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -13,6 +14,7 @@ import { CreateTaskDTO } from './dto/create-task.dto';
 import { GetTasksFilterDTO } from './dto/get-tasks-filter.dto';
 import { UpdateTaskStatusDTO } from './dto/update-task-status.dto';
 import { Task } from './task.entity';
+import { UuidValidationPipe } from './dto/uuid-validate.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -24,7 +26,7 @@ export class TasksController {
   }
 
   @Get('/:id')
-  getTaskById(@Param('id') id: string): Promise<Task> {
+  async getTaskById(@Param('id', ParseUUIDPipe) id: string): Promise<Task> {
     return this.tasksService.getTaskById(id);
   }
 
@@ -34,13 +36,13 @@ export class TasksController {
   }
 
   @Delete('/:id')
-  deleteTaskById(@Param('id') id: string): void {
-    this.tasksService.deleteTask(id);
+  deleteTaskById(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.tasksService.deleteTask(id);
   }
 
   @Patch('/:id/status')
   updateTaskStatus(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateTaskStatusDTO: UpdateTaskStatusDTO,
   ): Promise<Task> {
     const { status } = updateTaskStatusDTO;
