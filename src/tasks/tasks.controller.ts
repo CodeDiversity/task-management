@@ -14,7 +14,6 @@ import { CreateTaskDTO } from './dto/create-task.dto';
 import { GetTasksFilterDTO } from './dto/get-tasks-filter.dto';
 import { UpdateTaskStatusDTO } from './dto/update-task-status.dto';
 import { Task } from './task.entity';
-import { UuidValidationPipe } from './dto/uuid-validate.dto';
 
 @Controller('tasks')
 export class TasksController {
