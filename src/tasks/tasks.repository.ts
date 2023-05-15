@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/auth/user.entity';
 import { Repository } from 'typeorm';
 import { CreateTaskDTO } from './dto/create-task.dto';
 import { GetTasksFilterDTO } from './dto/get-tasks-filter.dto';
@@ -22,20 +23,25 @@ export class TaskRepository {
     return found;
   }
 
-  async insert(createTaskDto: CreateTaskDTO): Promise<Task> {
+  async insert(createTaskDto: CreateTaskDTO, user: User): Promise<Task> {
     const { title, description } = createTaskDto;
     const task = this.taskEntityRepository.create({
       title,
       description,
       status: TaskStatus.OPEN,
+      user,
     });
     await this.taskEntityRepository.save(task);
     return task;
   }
 
-  async findAll(filterDto: GetTasksFilterDTO): Promise<Task[]> {
+  async findAllByUser(
+    filterDto: GetTasksFilterDTO,
+    user: User,
+  ): Promise<Task[]> {
     const { status, search } = filterDto;
     const query = this.taskEntityRepository.createQueryBuilder('task');
+    query.where({ user });
 
     if (status) {
       query.andWhere('task.status = :status', { status });
@@ -43,7 +49,7 @@ export class TaskRepository {
 
     if (search) {
       query.andWhere(
-        'LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search)',
+        '(LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search))',
         { search: `%${search}%` },
       );
     }
