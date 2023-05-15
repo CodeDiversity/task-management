@@ -14,8 +14,8 @@ export class TaskRepository {
     private readonly taskEntityRepository: Repository<Task>,
   ) {}
 
-  async findById(id: string): Promise<Task> {
-    const found = await this.taskEntityRepository.findOneBy({ id });
+  async findById(id: string, user: User): Promise<Task> {
+    const found = await this.taskEntityRepository.findOneBy({ id, user });
     if (!found) {
       throw new NotFoundException(`Task with ID "${id}" not found`);
     }
@@ -66,8 +66,12 @@ export class TaskRepository {
     }
   }
 
-  async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
-    const task = await this.findById(id);
+  async updateTaskStatus(
+    id: string,
+    status: TaskStatus,
+    user: User,
+  ): Promise<Task> {
+    const task = await this.findById(id, user);
 
     task.status = status;
     await this.taskEntityRepository.save(task);
