@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/auth/user.entity';
+import { User } from '../auth/user.entity';
 import { Repository } from 'typeorm';
 import { CreateTaskDTO } from './dto/create-task.dto';
 import { GetTasksFilterDTO } from './dto/get-tasks-filter.dto';
@@ -9,6 +14,7 @@ import { Task } from './task.entity';
 
 @Injectable()
 export class TaskRepository {
+  private logger = new Logger('TaskRepository');
   constructor(
     @InjectRepository(Task)
     private readonly taskEntityRepository: Repository<Task>,
@@ -17,6 +23,7 @@ export class TaskRepository {
   async findById(id: string, user: User): Promise<Task> {
     const found = await this.taskEntityRepository.findOneBy({ id, user });
     if (!found) {
+      this.logger.error(`Task with ID "${id}" not found`);
       throw new NotFoundException(`Task with ID "${id}" not found`);
     }
 
@@ -53,15 +60,25 @@ export class TaskRepository {
         { search: `%${search}%` },
       );
     }
-
-    const tasks = await query.getMany();
-    return tasks;
+    try {
+      const tasks = await query.getMany();
+      return tasks;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get tasks for user "${user.username}", DTO: ${JSON.stringify(
+          filterDto,
+        )}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException();
+    }
   }
 
   async deleteById(id: string, user: User): Promise<void> {
     const result = await this.taskEntityRepository.delete({ id, user });
 
     if (result.affected === 0) {
+      this.logger.error(`Task with ID "${id}" not found`);
       throw new NotFoundException(`Task with ID "${id}" not found`);
     }
   }
